@@ -20,21 +20,43 @@
         background: var(--white);
       }
       header {
-        background: url(bg.webp) no-repeat top left / cover;
+        background: url(bg.webp) no-repeat center center / cover;
         height: 100vh;
         width: 100%;
-        font-family: Charter, "Bitstream Charter", serif;
-        color: var(--yellow);
-        line-height: .65;
-        letter-spacing: -17px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        overflow: hidden;
       }
       header h1 {
-        font-size: 35vmin;
-        font-weight: normal;
         margin: 0;
+      }
+      header button {
+        position: relative;
+        transition: top, color 180ms;
+        background: transparent;
+        border: none;
+        padding: 0;
+        vertical-align: bottom;
+        margin: 0;
+        display: inline;
+        font-family: Charter, "Bitstream Charter", serif;
+        color: var(--yellow);
+        line-height: .68;
+        letter-spacing: -17px;
+        font-size: 36vmin;
+        font-weight: normal;
+      }
+      header button:hover,
+      header button:focus,
+      header button:active {
+        top: 3px;
+        color: var(--pink);
+        cursor: pointer;
+        z-index: 1;
+      }
+      header button:active {
+        top: 6px;
       }
       body {
         margin: 0;
@@ -43,8 +65,8 @@
   </head>
   <body>
     <header>
-      <h1><span>SCI</span><span>EN</span><wbr/><span>TIF</span><span>IC</span></h1>
-      <h1 style="align-self: flex-end"><span>AN</span><span>I</span><wbr/><span>MI</span><span>SM</span></h1>
+      <h1><button>SCI</button><button>EN</button><button>TIF</button><button>IC</button></h1>
+      <h1 style="text-align: right"><button>AN</button><button>I</button><button>MI</button><button>SM</button></h1>
     </header>
   </body>
 </html>
