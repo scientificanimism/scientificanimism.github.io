@@ -1,14 +1,14 @@
 const buttons = document.querySelectorAll("header button");
 
 const audioFiles = [
-  "0 sci.mp3",
-  "1 en.mp3",
-  "2 ti.mp3",
-  "3 fic.mp3",
-  "4 a.mp3",
-  "5 ni.mp3",
-  "6 mis.mp3",
-  "7 m.mp3",
+  "0 sci.ogg",
+  "1 en.ogg",
+  "2 ti.ogg",
+  "3 fic.ogg",
+  "4 a.ogg",
+  "5 ni.ogg",
+  "6 mis.ogg",
+  "7 m.ogg",
 ];
 
 // HTML5 Audio fallback
