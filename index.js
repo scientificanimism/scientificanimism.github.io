@@ -11,55 +11,55 @@ const audioFiles = [
   "7 m.mp3",
 ];
 
-const sounds = audioFiles.map((file) => {
-  const audio = new Audio(`audio/${file}`);
-  audio.preload = "auto";
-  return audio;
-});
+let ctx;
+const buffers = new Array(audioFiles.length);
 
-let audioUnlocked = false;
+async function loadBuffers() {
+  const decoded = await Promise.all(
+    audioFiles.map((file) =>
+      fetch(`audio/${file}`)
+        .then((r) => r.arrayBuffer())
+        .then((buf) => ctx.decodeAudioData(buf))
+    )
+  );
+  decoded.forEach((buf, i) => (buffers[i] = buf));
+}
 
-function unlock(skipIndex) {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  sounds.forEach((s, i) => {
-    if (i === skipIndex) return;
-    s.muted = true;
-    s.play().then(() => {
-      s.pause();
-      s.muted = false;
-      s.currentTime = 0;
-    });
-  });
+function ensureContext() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  loadBuffers();
 }
 
 function play(index) {
-  const sound = sounds[index];
-  sound.currentTime = 0;
-  sound.play().catch(() => {});
+  if (!ctx || !buffers[index]) return;
+  const source = ctx.createBufferSource();
+  source.buffer = buffers[index];
+  source.connect(ctx.destination);
+  source.start(0);
 }
 
 buttons.forEach((button, i) => {
   button.addEventListener("mouseenter", () => play(i));
   button.addEventListener("click", () => {
-    unlock(i);
+    ensureContext();
     play(i);
   });
   button.addEventListener("touchstart", (e) => {
     e.preventDefault();
-    unlock(i);
+    ensureContext();
     play(i);
   });
 });
 
-document.addEventListener("click", () => unlock(-1));
-document.addEventListener("touchstart", () => unlock(-1));
+document.addEventListener("click", ensureContext);
+document.addEventListener("touchstart", ensureContext);
 
 document.addEventListener("keydown", (e) => {
   const index = parseInt(e.key) - 1;
   if (index >= 0 && index < sounds.length) {
     buttons[index].focus();
-    unlock(index);
+    ensureContext();
     play(index);
   }
 });
