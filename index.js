@@ -11,61 +11,56 @@ const audioFiles = [
   "7 m.mp3",
 ];
 
-// Pre-fetch raw audio data on page load
-const rawDataPromises = audioFiles.map((file) =>
-  fetch(`audio/${file}`).then((r) => r.arrayBuffer())
-);
+const sounds = audioFiles.map((file) => {
+  const audio = new Audio(`audio/${file}`);
+  audio.preload = "auto";
+  audio.load();
+  return audio;
+});
 
-let ctx;
-const buffers = new Array(audioFiles.length);
-let ctxReady;
+let audioUnlocked = false;
 
-function ensureContext() {
-  if (ctxReady) {
-    if (ctx.state === "suspended") ctx.resume();
-    return ctxReady;
-  }
-  ctx = new (window.AudioContext || window.webkitAudioContext)();
-  ctx.resume();
-  ctxReady = Promise.all(rawDataPromises)
-    .then((rawData) =>
-      Promise.all(rawData.map((buf) => ctx.decodeAudioData(buf)))
-    )
-    .then((decoded) => {
-      decoded.forEach((buf, i) => (buffers[i] = buf));
+function unlock(skipIndex) {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  sounds.forEach((s, i) => {
+    if (i === skipIndex) return;
+    s.muted = true;
+    s.play().then(() => {
+      s.pause();
+      s.muted = false;
+      s.currentTime = 0;
     });
-  return ctxReady;
+  });
 }
 
 function play(index) {
-  if (!ctx || !buffers[index]) return;
-  const source = ctx.createBufferSource();
-  source.buffer = buffers[index];
-  source.connect(ctx.destination);
-  source.start(0);
+  const sound = sounds[index];
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
 }
 
 buttons.forEach((button, i) => {
   button.addEventListener("mouseenter", () => play(i));
   button.addEventListener("click", () => {
-    ensureContext();
+    unlock(i);
     play(i);
   });
   button.addEventListener("touchstart", (e) => {
     e.preventDefault();
-    ensureContext();
+    unlock(i);
     play(i);
   });
 });
 
-document.addEventListener("click", ensureContext);
-document.addEventListener("touchstart", ensureContext);
+document.addEventListener("click", () => unlock(-1));
+document.addEventListener("touchstart", () => unlock(-1));
 
 document.addEventListener("keydown", (e) => {
   const index = parseInt(e.key) - 1;
-  if (index >= 0 && index < audioFiles.length) {
+  if (index >= 0 && index < sounds.length) {
     buttons[index].focus();
-    ensureContext();
+    unlock(index);
     play(index);
   }
 });
