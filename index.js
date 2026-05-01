@@ -21,8 +21,12 @@ const buffers = new Array(audioFiles.length);
 let ctxReady;
 
 function ensureContext() {
-  if (ctxReady) return ctxReady;
+  if (ctxReady) {
+    if (ctx.state === "suspended") ctx.resume();
+    return ctxReady;
+  }
   ctx = new (window.AudioContext || window.webkitAudioContext)();
+  ctx.resume();
   ctxReady = Promise.all(rawDataPromises)
     .then((rawData) =>
       Promise.all(rawData.map((buf) => ctx.decodeAudioData(buf)))
