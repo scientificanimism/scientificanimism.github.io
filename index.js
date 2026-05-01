@@ -54,3 +54,12 @@ buttons.forEach((button, i) => {
 
 document.addEventListener("click", () => unlock(-1));
 document.addEventListener("touchstart", () => unlock(-1));
+
+document.addEventListener("keydown", (e) => {
+  const index = parseInt(e.key) - 1;
+  if (index >= 0 && index < sounds.length) {
+    buttons[index].focus();
+    unlock(index);
+    play(index);
+  }
+});
