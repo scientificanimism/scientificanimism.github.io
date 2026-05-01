@@ -47,25 +47,25 @@ function play(index) {
 
 buttons.forEach((button, i) => {
   button.addEventListener("mouseenter", () => play(i));
-  button.addEventListener("click", async () => {
-    await ensureContext();
+  button.addEventListener("click", () => {
+    ensureContext();
     play(i);
   });
-  button.addEventListener("touchstart", async (e) => {
+  button.addEventListener("touchstart", (e) => {
     e.preventDefault();
-    await ensureContext();
+    ensureContext();
     play(i);
   });
 });
 
-document.addEventListener("click", () => ensureContext());
-document.addEventListener("touchstart", () => ensureContext());
+document.addEventListener("click", ensureContext);
+document.addEventListener("touchstart", ensureContext);
 
-document.addEventListener("keydown", async (e) => {
+document.addEventListener("keydown", (e) => {
   const index = parseInt(e.key) - 1;
   if (index >= 0 && index < audioFiles.length) {
     buttons[index].focus();
-    await ensureContext();
+    ensureContext();
     play(index);
   }
 });
