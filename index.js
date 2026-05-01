@@ -11,24 +11,26 @@ const audioFiles = [
   "7 m.mp3",
 ];
 
+// Pre-fetch raw audio data on page load
+const rawDataPromises = audioFiles.map((file) =>
+  fetch(`audio/${file}`).then((r) => r.arrayBuffer())
+);
+
 let ctx;
 const buffers = new Array(audioFiles.length);
-
-async function loadBuffers() {
-  const decoded = await Promise.all(
-    audioFiles.map((file) =>
-      fetch(`audio/${file}`)
-        .then((r) => r.arrayBuffer())
-        .then((buf) => ctx.decodeAudioData(buf))
-    )
-  );
-  decoded.forEach((buf, i) => (buffers[i] = buf));
-}
+let ctxReady;
 
 function ensureContext() {
-  if (ctx) return;
+  if (ctxReady) return ctxReady;
   ctx = new (window.AudioContext || window.webkitAudioContext)();
-  loadBuffers();
+  ctxReady = Promise.all(rawDataPromises)
+    .then((rawData) =>
+      Promise.all(rawData.map((buf) => ctx.decodeAudioData(buf)))
+    )
+    .then((decoded) => {
+      decoded.forEach((buf, i) => (buffers[i] = buf));
+    });
+  return ctxReady;
 }
 
 function play(index) {
@@ -41,25 +43,25 @@ function play(index) {
 
 buttons.forEach((button, i) => {
   button.addEventListener("mouseenter", () => play(i));
-  button.addEventListener("click", () => {
-    ensureContext();
+  button.addEventListener("click", async () => {
+    await ensureContext();
     play(i);
   });
-  button.addEventListener("touchstart", (e) => {
+  button.addEventListener("touchstart", async (e) => {
     e.preventDefault();
-    ensureContext();
+    await ensureContext();
     play(i);
   });
 });
 
-document.addEventListener("click", ensureContext);
-document.addEventListener("touchstart", ensureContext);
+document.addEventListener("click", () => ensureContext());
+document.addEventListener("touchstart", () => ensureContext());
 
-document.addEventListener("keydown", (e) => {
+document.addEventListener("keydown", async (e) => {
   const index = parseInt(e.key) - 1;
-  if (index >= 0 && index < sounds.length) {
+  if (index >= 0 && index < audioFiles.length) {
     buttons[index].focus();
-    ensureContext();
+    await ensureContext();
     play(index);
   }
 });
